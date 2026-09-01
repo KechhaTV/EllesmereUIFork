@@ -803,6 +803,14 @@ local function GetPreviewIcons()
     return _previewIcons
 end
 
+local function ApplyIconBorders()
+    for _, ic in ipairs(_iconPool) do
+        if ic.ApplyBorder then
+            ic.ApplyBorder()
+        end
+    end
+end
+
 BuildIconStrip = function()
     local sh = DB()
     if not sh.iconEnabled or ShouldHide(sh.iconHideInDungeon, sh.iconHideInRaid, sh.iconHideInDelve, sh.iconHideInPvP, sh.iconHideOutOfInstance) then
