@@ -39,6 +39,13 @@ local SH_DEFAULTS = {
     iconCount       = 5,
     iconOpacity     = 1,
     iconAnimation   = "none",  -- none, slide, fly
+    iconBorderEnabled = false,
+    iconBorderTexture = "solid",
+    iconBorderSize  = 0,
+    iconBorderR     = 0,
+    iconBorderG     = 0,
+    iconBorderB     = 0,
+    iconBorderA     = 1,
     maxBars         = 5,
     hideTopBar      = false,
     barWidth        = 300,
@@ -730,6 +737,38 @@ local function MakeIcon(parent)
     ic.tex:SetAllPoints()
     local z = DB().iconZoom or 0.08
     ic.tex:SetTexCoord(z, 1 - z, z, 1 - z)
+    ic.ApplyBorder = function()
+        local sh = DB()
+        local size = sh.iconBorderSize or 0
+        if size <= 0 then
+            if ic.border then
+                ic.border:Hide()
+            end
+            return
+        end
+
+        if not ic.border then
+            ic.border = CreateFrame("Frame", nil, ic.frame)
+            ic.border:SetAllPoints(ic.frame)
+            ic.border:SetFrameLevel(ic.frame:GetFrameLevel() + 3)
+        end
+        ic.border:Show()
+        EllesmereUI.ApplyBorderStyle(
+            ic.border,
+            size,
+            sh.iconBorderR or 0,
+            sh.iconBorderG or 0,
+            sh.iconBorderB or 0,
+            sh.iconBorderA or 1,
+            sh.iconBorderTexture or "solid",
+            sh.iconBorderTextureOffset,
+            sh.iconBorderTextureOffsetY,
+            sh.iconBorderTextureShiftX,
+            sh.iconBorderTextureShiftY,
+            "damagemeters_icon",
+            size
+        )
+    end
     ic.frame:Hide()
     return ic
 end
@@ -862,6 +901,7 @@ BuildIconStrip = function()
     while #_iconPool < ICON_POOL_SIZE do
         _iconPool[#_iconPool + 1] = MakeIcon(_iconStrip)
     end
+    ApplyIconBorders()
 
     -- Layout only changes when settings change; content changes every cast.
     local iconAlpha = iconAlphaCheck
