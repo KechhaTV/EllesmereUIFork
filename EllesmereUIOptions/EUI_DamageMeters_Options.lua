@@ -1767,6 +1767,254 @@ initFrame:SetScript("OnEvent", function(self)
               setValue = function(v) SHDB().iconFadeTime = v; RefreshSH() end }
         );  y = y - h
 
+        -- Row 6: Icon Border
+        local shIconBorderValues, shIconBorderOrder = EllesmereUI.GetBorderTextureDropdown()
+
+        shIconBorderValues.shadow = nil
+
+        for i = #shIconBorderOrder, 1, -1 do
+            if shIconBorderOrder[i] == "shadow" then
+                table.remove(shIconBorderOrder, i)
+            end
+        end
+        local shIconBorderRow
+        shIconBorderRow, h = W:DualRow(parent, y,
+            {
+                type = "dropdown",
+                text = "Icon Border Style",
+                disabled = iconOff,
+                disabledTooltip = "Icon History",
+                values = shIconBorderValues,
+                order = shIconBorderOrder,
+                getValue = function()
+                    return SHDB().iconBorderTexture or "solid"
+                end,
+                setValue = function(v)
+                    SHDB().iconBorderTexture = v
+                    -- Reset custom offsets when changing style.
+                    SHDB().iconBorderTextureOffset = nil
+                    SHDB().iconBorderTextureOffsetY = nil
+                    SHDB().iconBorderTextureShiftX = nil
+                    SHDB().iconBorderTextureShiftY = nil
+                    if v ~= "solid" then
+                        SHDB().iconBorderR = 1
+                        SHDB().iconBorderG = 1
+                        SHDB().iconBorderB = 1
+                        SHDB().iconBorderA = 1
+                    else
+                        SHDB().iconBorderR = 0
+                        SHDB().iconBorderG = 0
+                        SHDB().iconBorderB = 0
+                        SHDB().iconBorderA = 1
+                        end
+                    local defSz = EllesmereUI.GetBorderDefaultSize(
+                        "damagemeters_icon",
+                        v
+                    )
+                    if defSz then
+                        SHDB().iconBorderSize = defSz
+                    end
+                    RefreshSH()
+                    EllesmereUI:RefreshPage()
+                end
+            },
+            {
+                type = "slider",
+                text = "Icon Border Size",
+                min = 0,
+                max = 4,
+                step = 1,
+                disabled = iconOff,
+                disabledTooltip = "Icon History",
+                getValue = function()
+                    return SHDB().iconBorderSize or 0
+                end,
+                setValue = function(v)
+                    SHDB().iconBorderSize = v
+                    RefreshSH()
+                end
+            }
+        )
+        y = y - h
+
+        -- Icon Border Offset cog
+        if not EllesmereUI._prebuilding then
+            local rgn = shIconBorderRow._leftRegion
+            local _, cogShow = EllesmereUI.BuildCogPopup({
+                title = "Border Offset",
+                rows = {
+                    {
+                        type = "slider",
+                        label = "Offset X",
+                        min = -10,
+                        max = 10,
+                        step = 1,
+                        disabled = iconOff,
+                        disabledTooltip = "Icon History",
+                        get = function()
+                            local v = SHDB().iconBorderTextureOffset
+                            if v ~= nil then
+                                return v
+                            end
+                            local tex = SHDB().iconBorderTexture or "solid"
+                            local sz = SHDB().iconBorderSize or 1
+                            local dox = EllesmereUI.GetBorderDefaults(
+                                "damagemeters_icon",
+                                tex,
+                                sz
+                            )
+                            return dox or 0
+                        end,
+                        set = function(v)
+                            SHDB().iconBorderTextureOffset = v
+                            RefreshSH()
+                        end,
+                    },
+                    {
+                        type = "slider",
+                        label = "Offset Y",
+                        min = -10,
+                        max = 10,
+                        step = 1,
+                        disabled = iconOff,
+                        disabledTooltip = "Icon History",
+
+                        get = function()
+                            local v = SHDB().iconBorderTextureOffsetY
+                            if v ~= nil then
+                                return v
+                            end
+                            local tex = SHDB().iconBorderTexture or "solid"
+                            local sz = SHDB().iconBorderSize or 1
+                            local _, doy = EllesmereUI.GetBorderDefaults(
+                                "damagemeters_icon",
+                                tex,
+                                sz
+                            )
+                            return doy or 0
+                        end,
+                        set = function(v)
+                            SHDB().iconBorderTextureOffsetY = v
+                            RefreshSH()
+                        end,
+                    },
+                    {
+                        type = "slider",
+                        label = "Shift X",
+                        min = -10,
+                        max = 10,
+                        step = 1,
+                        disabled = iconOff,
+                        disabledTooltip = "Icon History",
+
+                        get = function()
+                            local v = SHDB().iconBorderTextureShiftX
+                            if v ~= nil then
+                                return v
+                            end
+                            local tex = SHDB().iconBorderTexture or "solid"
+                            local sz = SHDB().iconBorderSize or 1
+
+                            local _, _, dsx = EllesmereUI.GetBorderDefaults(
+                                "damagemeters_icon",
+                                tex,
+                                sz
+                            )
+                            return dsx or 0
+                        end,
+                        set = function(v)
+                            SHDB().iconBorderTextureShiftX = v
+                            RefreshSH()
+                        end,
+                    },
+
+                    {
+                        type = "slider",
+                        label = "Shift Y",
+                        min = -10,
+                        max = 10,
+                        step = 1,
+                        disabled = iconOff,
+                        disabledTooltip = "Icon History",
+                        get = function()
+                            local v = SHDB().iconBorderTextureShiftY
+                            if v ~= nil then
+                                return v
+                            end
+                            local tex = SHDB().iconBorderTexture or "solid"
+                            local sz = SHDB().iconBorderSize or 1
+                            local _, _, _, dsy = EllesmereUI.GetBorderDefaults(
+                                "damagemeters_icon",
+                                tex,
+                                sz
+                            )
+
+                            return dsy or 0
+                        end,
+                        set = function(v)
+                            SHDB().iconBorderTextureShiftY = v
+                            RefreshSH()
+                        end,
+                    },
+                },
+            })
+            local cogBtn = CreateFrame("Button", nil, rgn)
+            cogBtn:SetSize(26, 26)
+            cogBtn:SetPoint("RIGHT", rgn._control, "LEFT", -8, 0)
+            rgn._lastInline = cogBtn
+            cogBtn:SetFrameLevel(rgn:GetFrameLevel() + 5)
+            cogBtn:SetAlpha(0.4)
+
+            local cogTex = cogBtn:CreateTexture(nil, "OVERLAY")
+            cogTex:SetAllPoints()
+            cogTex:SetTexture(EllesmereUI.DIRECTIONS_ICON)
+
+            cogBtn:SetScript("OnEnter", function(self)
+                self:SetAlpha(0.7)
+            end)
+
+            cogBtn:SetScript("OnLeave", function(self)
+                self:SetAlpha(0.4)
+            end)
+
+            cogBtn:SetScript("OnClick", function(self)
+                cogShow(self)
+            end)
+        end
+            
+        -- Icon Border Color
+        if not EllesmereUI._prebuilding then
+            local rgn = shIconBorderRow._rightRegion
+            local ctrl = rgn._control
+
+            local swatch, updateSwatch = EllesmereUI.BuildColorSwatch(
+                rgn,
+                shIconBorderRow:GetFrameLevel() + 3,
+                function()
+                    local sh = SHDB()
+
+                    return sh.iconBorderR or 0,
+                        sh.iconBorderG or 0,
+                        sh.iconBorderB or 0,
+                        sh.iconBorderA or 1
+                end,
+                function(r, g, b, a)
+                    local sh = SHDB()
+
+                    sh.iconBorderR = r
+                    sh.iconBorderG = g
+                    sh.iconBorderB = b
+                    sh.iconBorderA = a or 1
+
+                    RefreshSH()
+                end,
+                true,
+                20
+            )
+            PP.Point(swatch, "RIGHT", ctrl, "LEFT", -8, 0)
+            EllesmereUI.RegisterWidgetRefresh(updateSwatch)
+        end
+            
         -- =====================================================================
         --  BAR HISTORY
         -- =====================================================================
